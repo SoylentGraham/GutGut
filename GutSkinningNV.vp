@@ -1,0 +1,94 @@
+!!VP1.0
+
+#	R0	bone matrix row 0
+#	R1	bone matrix row 1
+#	R2	bone matrix row 2
+#	R3	bone matrix row 3
+#	R4	input vertex pos
+#	R5	matrix transformed vertex
+#	R6	scratch
+#	R7	output vertex pos
+#	C8	always 4 for multiplication of bone index, as there are 4 vectors per matrix
+#	C0..3	projection matrix
+#	V6	attrib6, matrix index
+
+# copy vertex into register4
+MOV R4, v[OPOS];
+
+# matrix index in attrib6
+# get matrix index 0(x) (1 matrix takes up 4 constants, so multiply index by 4)
+MUL R6.x, v[6].x, c[8].x;		# constant[8] == 4
+ARL A0.x, R6.x;					# get address
+
+# row-major matrix input
+# put matrix rows into r0,r1,r2,r3 (RowN)
+#MOV R0.x, c[ A0.x + 9  ].x;	# row[0].col0
+#MOV R0.y, c[ A0.x + 9  ].y;	# row[0].col1
+#MOV R0.z, c[ A0.x + 9  ].z;	# row[0].col2
+#MOV R0.w, c[ A0.x + 9  ].w;	# row[0].col3
+#
+#MOV R1.x, c[ A0.x + 10 ].x;	# row[1].col0
+#MOV R1.y, c[ A0.x + 10 ].y;	# row[1].col1
+#MOV R1.z, c[ A0.x + 10 ].z;	# row[1].col2
+#MOV R1.w, c[ A0.x + 10 ].w;	# row[1].col3
+#
+#MOV R2.x, c[ A0.x + 11 ].x;	# row[2].col0
+#MOV R2.y, c[ A0.x + 11 ].y;	# row[2].col1
+#MOV R2.z, c[ A0.x + 11 ].z;	# row[2].col2
+#MOV R2.w, c[ A0.x + 11 ].w;	# row[2].col3
+#
+#MOV R3.x, c[ A0.x + 12 ].x;	# row[3].col0
+#MOV R3.y, c[ A0.x + 12 ].y;	# row[3].col1
+#MOV R3.z, c[ A0.x + 12 ].z;	# row[3].col2
+#MOV R3.w, c[ A0.x + 12 ].w;	# row[3].col3
+
+
+# column-major matrix input
+# put matrix rows into r0,r1,r2,r3 (RowN)
+MOV R0.x, c[ A0.x + 9  ].x;	# row[0].col0 = col[0].row0
+MOV R0.y, c[ A0.x + 10 ].x;	# row[0].col1 = col[1].row0
+MOV R0.z, c[ A0.x + 11 ].x;	# row[0].col2 = col[2].row0
+MOV R0.w, c[ A0.x + 12 ].x;	# row[0].col3 = col[3].row0
+
+MOV R1.x, c[ A0.x + 9  ].y;	# row[1].col0 = col[0].row1
+MOV R1.y, c[ A0.x + 10 ].y;	# row[1].col1
+MOV R1.z, c[ A0.x + 11 ].y;	# row[1].col2
+MOV R1.w, c[ A0.x + 12 ].y;	# row[1].col3
+
+MOV R2.x, c[ A0.x + 9  ].z;	# row[2].col0
+MOV R2.y, c[ A0.x + 10 ].z;	# row[2].col1
+MOV R2.z, c[ A0.x + 11 ].z;	# row[2].col2
+MOV R2.w, c[ A0.x + 12 ].z;	# row[2].col3
+
+MOV R3.x, c[ A0.x + 9  ].w;	# row[3].col0
+MOV R3.y, c[ A0.x + 10 ].w;	# row[3].col1
+MOV R3.z, c[ A0.x + 11 ].w;	# row[3].col2
+MOV R3.w, c[ A0.x + 12 ].w;	# row[3].col3
+
+
+
+# transform by bone matrix index (+ base index 9)
+DP4 R5.x, R0, R4;	# row0
+DP4 R5.y, R1, R4;	# row1
+DP4 R5.z, R2, R4;	# row2
+DP4 R5.w, R3, R4;	# row3
+
+# multiply by weight
+#MUL R0.xyz, R7, v[WGHT].x;
+MOV R7, R5;
+
+# put vertex(r0) into output multiplying with projection mat(c[0..3])
+DP4	o[HPOS].x, c[0], R7;
+DP4 o[HPOS].y, c[1], R7;
+DP4 o[HPOS].z, c[2], R7;
+DP4 o[HPOS].w, c[3], R7;
+
+# copy input colour
+MOV o[COL0], v[COL0];
+
+# copy input texcoord
+MOV o[TEX0], v[TEX0];
+MOV o[TEX1], v[TEX1];
+
+
+END 

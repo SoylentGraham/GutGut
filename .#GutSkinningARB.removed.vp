@@ -1,0 +1,104 @@
+!!ARBvp1.0
+
+#	gr 13/02/04 -	removed usage of matrix row 4. this cuts down the matrixes we need 
+#					(by 1/4 obviously) and saves a bit of CPU and GPU time. position.w 
+#					is set to 1 instead of the dotproduct of row4(R3)
+
+#	R0	bone matrix row 0
+#	R1	bone matrix row 1
+#	R2	bone matrix row 2
+#	R3	bone matrix row 3
+#	R4	input vertex pos
+#	R5	matrix transformed vertex
+#	R6	scratch
+#	R7	output vertex pos
+#	C0..3	projection matrix
+#	V6	attrib6, matrix index
+
+ATTRIB	vPOS			= vertex.position;
+ATTRIB	vCOL0			= vertex.color;
+ATTRIB	vTEX0			= vertex.texcoord[0];
+ATTRIB	vTEX1			= vertex.texcoord[1];
+ATTRIB	vBI				= vertex.attrib[6];		# bone index
+
+PARAM	mPRJ[4]			= { state.matrix.mvp };	# projection matrix
+
+OUTPUT	oPOS			= result.position;
+OUTPUT	oCOL0			= result.color;
+OUTPUT	oTEX0			= result.texcoord[0];
+OUTPUT	oTEX1			= result.texcoord[1];
+
+#	some drivers dont check the param size...
+PARAM	BoneMat[87]	= { program.local[8..94] };	# 29 POSSIBLE matrixes(*4 columns) [gr - *3 columns]
+ADDRESS	A0;
+TEMP	R0;
+TEMP	R1;
+TEMP	R2;
+TEMP	R3;
+TEMP	R4;
+TEMP	R5;
+TEMP	R6;
+TEMP	R7;
+
+
+# copy vertex into register4
+MOV R4, vPOS;
+
+# matrix index in attrib6
+# get matrix index 0(x) (1 matrix takes up 4 constants, so multiply index by 4[gr - now 3])
+#MUL R6.x, vBI.x, 4;
+MUL R6.x, vBI.x, 3;		# gr - changed to 3
+ARL A0.x, R6.x;			# get address
+
+
+# column-major matrix input
+# put matrix rows into r0,r1,r2,r3 (RowN)
+#MOV R0.x, BoneMat[ A0.x + 0  ].x;	# row[0].col0 = col[0].row0
+#MOV R0.y, BoneMat[ A0.x + 1 ].x;	# row[0].col1 = col[1].row0
+#MOV R0.z, BoneMat[ A0.x + 2 ].x;	# row[0].col2 = col[2].row0
+#MOV R0.w, BoneMat[ A0.x + 3 ].x;	# row[0].col3 = col[3].row0
+#MOV R1.x, BoneMat[ A0.x + 0  ].y;	# row[1].col0 = col[0].row1
+#MOV R1.y, BoneMat[ A0.x + 1 ].y;	# row[1].col1 = col[1].row1
+#MOV R1.z, BoneMat[ A0.x + 2 ].y;	# row[1].col2 = col[2].row1
+#MOV R1.w, BoneMat[ A0.x + 3 ].y;	# row[1].col3 = col[3].row1
+#MOV R2.x, BoneMat[ A0.x + 0  ].z;	# row[2].col0 = col[0].row2
+#MOV R2.y, BoneMat[ A0.x + 1 ].z;	# row[2].col1 = col[1].row2
+#MOV R2.z, BoneMat[ A0.x + 2 ].z;	# row[2].col2 = col[2].row2
+#MOV R2.w, BoneMat[ A0.x + 3 ].z;	# row[2].col3 = col[3].row2
+#MOV R3.x, BoneMat[ A0.x + 0  ].w;	# row[3].col0 = col[0].row3
+#MOV R3.y, BoneMat[ A0.x + 1 ].w;	# row[3].col1 = col[1].row3
+#MOV R3.z, BoneMat[ A0.x + 2 ].w;	# row[3].col2 = col[2].row3
+#MOV R3.w, BoneMat[ A0.x + 3 ].w;	# row[3].col3 = col[3].row3
+
+# row-major matrix input
+MOV R0, BoneMat[ A0.x + 0  ];	# row[0].col0 = col[0].row0
+MOV R1, BoneMat[ A0.x + 1  ];	# row[0].col0 = col[0].row0
+MOV R2, BoneMat[ A0.x + 2  ];	# row[0].col0 = col[0].row0
+#MOV R3, BoneMat[ A0.x + 3  ];	# row[0].col0 = col[0].row0
+
+
+# transform by bone matrix index (+ base index 9)
+DP4 R5.x, R0, R4;	# row0
+DP4 R5.y, R1, R4;	# row1
+DP4 R5.z, R2, R4;	# row2
+#DP4 R5.w, R3, R4;	# row3
+SGE R5.w, R0.x, R0.x;	# set w to 1 if R0.x>=R0.x
+
+# multiply by weight
+#MUL R0.xyz, R7, v[WGHT].x;
+MOV R7, R5;
+
+# put vertex(r0) into output multiplying with modelview(c[0..3])
+DP4	oPOS.x, mPRJ[0], R7;
+DP4 oPOS.y, mPRJ[1], R7;
+DP4 oPOS.z, mPRJ[2], R7;
+DP4 oPOS.w, mPRJ[3], R7;
+
+# copy input colour
+MOV oCOL0, vCOL0;
+
+# copy input texcoord
+MOV oTEX0, vTEX0;
+MOV oTEX1, vTEX1;
+
+END

@@ -1,0 +1,23 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual C++ Express 2005
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GutGut", "GutGut.vcproj", "{6B3C52C7-04A5-42E8-910C-974619FD5837}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		MaxHybrid|Win32 = MaxHybrid|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6B3C52C7-04A5-42E8-910C-974619FD5837}.Debug|Win32.ActiveCfg = Debug|Win32
+		{6B3C52C7-04A5-42E8-910C-974619FD5837}.Debug|Win32.Build.0 = Debug|Win32
+		{6B3C52C7-04A5-42E8-910C-974619FD5837}.MaxHybrid|Win32.ActiveCfg = MaxHybrid|Win32
+		{6B3C52C7-04A5-42E8-910C-974619FD5837}.MaxHybrid|Win32.Build.0 = MaxHybrid|Win32
+		{6B3C52C7-04A5-42E8-910C-974619FD5837}.Release|Win32.ActiveCfg = Release|Win32
+		{6B3C52C7-04A5-42E8-910C-974619FD5837}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
